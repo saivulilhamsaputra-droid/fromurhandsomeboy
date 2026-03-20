@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HBD My Queen!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #fce4ec; 
+            --accent: #ff4da6;
+            --text-dark: #4a4a4a;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+        }
+
+        .screen {
+            display: none; width: 100%; height: 100%;
+            flex-direction: column; justify-content: center;
+            align-items: center; text-align: center; padding: 20px;
+            position: absolute;
+        }
+
+        .active { display: flex; animation: fadeIn 0.5s ease; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* --- SCREEN 1: START --- */
+        h1.title { font-family: 'Dancing Script', cursive; font-size: 3rem; color: var(--accent); margin: 0; }
+        .btn-main {
+            margin-top: 20px; padding: 12px 25px; border-radius: 25px; border: none;
+            background: var(--accent); color: white; font-weight: 600;
+            box-shadow: 0 4px 10px rgba(255, 77, 166, 0.3); cursor: pointer; transition: 0.3s;
+        }
+        .btn-main:active { transform: scale(0.95); }
+
+        /* --- SCREEN 2: GAME --- */
+        #screen2 { background: #e3f2fd; } 
+        #score-board {
+            position: absolute; top: 40px; background: white;
+            padding: 8px 15px; border-radius: 15px; font-size: 0.9rem;
+            border: 2px solid var(--accent);
+        }
+        .heart-target {
+            position: absolute; font-size: 50px; 
+            cursor: pointer; user-select: none;
+            transition: all 0.3s ease-out;
+        }
+
+        /* --- SCREEN 3: LOADING --- */
+        .progress-container { width: 80%; background: #ddd; border-radius: 20px; height: 12px; margin-top: 20px; overflow: hidden; }
+        .progress-bar { width: 0%; height: 100%; background: var(--accent); }
+
+        /* --- SCREEN 4: SURAT --- */
+        .card-final {
+            background: white; width: 100%; max-width: 320px;
+            padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            position: relative; /* Buat container hati */
+            z-index: 10;
+        }
+        .photo-frame {
+            width: 100%; border: 8px solid #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: rotate(-2deg); margin-bottom: 15px; border-radius: 5px; overflow: hidden;
+        }
+        .photo-frame img { width: 100%; display: block; }
+        .letter-box { text-align: left; font-size: 0.95rem; line-height: 1.6; color: #333; }
+
+        /* --- ANIMASI HATI TERBANG (BARU) --- */
+        .floating-heart {
+            position: absolute;
+            color: var(--accent);
+            opacity: 0.8;
+            pointer-events: none;
+            animation: flyAround 4s ease-in-out forwards;
+        }
+
+        @keyframes flyAround {
+            0% { transform: translate(0, 0) rotate(0deg) scale(0.5); opacity: 0; }
+            10% { opacity: 0.8; }
+            100% { transform: translate(var(--translateX), var(--translateY)) rotate(var(--rotate)) scale(var(--scale)); opacity: 0; }
+        }
+
+        /* Efek klik */
+        .click-effect {
+            position: absolute; pointer-events: none; font-size: 24px;
+            animation: floatUp 0.8s ease-out forwards;
+        }
+        @keyframes floatUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-50px); opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <audio id="bgm" loop><source src="music.mp3" type="audio/mpeg"></audio>
+
+    <div id="screen1" class="screen active">
+        <h1 class="title">Hello, My Queen!</h1>
+        <p style="font-size: 0.9rem; margin-top: 10px;">Turn on the music first 🎵</p>
+        <button class="btn-main" onclick="startGame()">Start with Love ❤️</button>
+    </div>
+
+    <div id="screen2" class="screen">
+        <div id="score-board">Hati terkumpul: <span id="score">0</span> / 10</div>
+        <p style="position:absolute; top:85px; font-size: 0.8rem;">Tap hatinya dongg</p>
+    </div>
+
+    <div id="screen3" class="screen">
+        <h3 id="status-loading">tunggu yaa sayangg...</h3>
+        <div class="progress-container"><div class="progress-bar" id="bar"></div></div>
+        <p id="loading-text" style="font-size: 0.8rem; margin-top: 10px;">Collecting data...</p>
+    </div>
+
+    <div id="screen4" class="screen">
+        <div class="card-final">
+            <div class="photo-frame">
+                <img src="lili.png" alt="Happy Birthday My Queen">
+            </div>
+            <h2 style="font-family:'Dancing Script'; color:var(--accent); margin: 5px 0;">Happy Birthday! ✨</h2>
+            <div class="letter-box">
+                <p>"Happy Birthday, my darling, my sweet love, my beauty, my queen. I love you very much. You mean a lot to me, darling. I feel like the luckiest man to have you in my life. I hope that what you want and all your dreams come true soon. Thank you for always being there for me forever."</p>
+                
+                <p style="margin-top: 15px; font-style: italic; color: var(--accent); text-align: right;">
+                    With all my love,<br>
+                    <b style="font-size: 1.1rem; font-family: 'Dancing Script', cursive;">Yours Forever</b>
+                </p>
+            </div>
+            <button class="btn-main" style="width:100%" onclick="location.reload()">repeat</button>
+        </div>
+    </div>
+
+    <script>
+        const bgm = document.getElementById('bgm');
+        let score = 0;
+        const targetScore = 10;
+
+        function startGame() {
+            bgm.play().catch(() => { console.log("Musik butuh interaksi user"); });
+            nextScreen('screen1', 'screen2');
+            spawnHeart();
+        }
+
+        function spawnHeart() {
+            if (score >= targetScore) {
+                startLoading();
+                return;
+            }
+            const heart = document.createElement('div');
+            heart.className = 'heart-target';
+            heart.innerHTML = '❤️';
+            const x = Math.random() * (window.innerWidth - 80) + 20;
+            const y = Math.random() * (window.innerHeight - 200) + 120;
+            heart.style.left = x + 'px';
+            heart.style.top = y + 'px';
+            
+            heart.onclick = () => {
+                score++;
+                document.getElementById('score').innerText = score;
+                showEffect(x, y);
+                heart.remove();
+                setTimeout(spawnHeart, 400); 
+            };
+            
+            document.getElementById('screen2').appendChild(heart);
+            
+            setTimeout(() => {
+                if(heart.parentNode) {
+                    heart.remove();
+                    spawnHeart();
+                }
+            }, 3000); 
+        }
+
+        function showEffect(x, y) {
+            const eff = document.createElement('div');
+            eff.className = 'click-effect';
+            eff.innerHTML = '✨';
+            eff.style.left = x + 'px';
+            eff.style.top = y + 'px';
+            document.body.appendChild(eff);
+            setTimeout(() => eff.remove(), 800);
+        }
+
+        function startLoading() {
+            nextScreen('screen2', 'screen3');
+            let width = 0;
+            const bar = document.getElementById('bar');
+            const interval = setInterval(() => {
+                if (width >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => finishGame(), 500);
+                } else {
+                    width++;
+                    bar.style.width = width + '%';
+                }
+            }, 40);
+        }
+
+        function finishGame() {
+            nextScreen('screen3', 'screen4');
+            // JALANKAN HUJAN HATI OTOMATIS
+            createHeartRain();
+        }
+
+        // --- FUNGSI HUJAN HATI (BARU) ---
+        function createHeartRain() {
+            const screen4 = document.getElementById('screen4');
+            const icons = ['❤️', '💖', '💝', '💗', '✨'];
+
+            for (let i = 0; i < 25; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'floating-heart';
+                heart.innerText = icons[Math.floor(Math.random() * icons.length)];
+                
+                // Set posisi awal acak di sekitar kartu
+                heart.style.left = Math.random() * 80 + 10 + '%';
+                heart.style.top = Math.random() * 80 + 10 + '%';
+                heart.style.fontSize = Math.random() * 15 + 15 + 'px';
+
+                // Set variabel untuk animasi flyAround (menggunakan CSS Variables)
+                // Arah acak: Translasi X, Y, Rotasi, dan Skala
+                heart.style.setProperty('--translateX', (Math.random() - 0.5) * 400 + 'px');
+                heart.style.setProperty('--translateY', (Math.random() - 0.5) * 400 + 'px');
+                heart.style.setProperty('--rotate', Math.random() * 360 + 'deg');
+                heart.style.setProperty('--scale', Math.random() * 0.5 + 1);
+
+                // Delay acak agar hati tidak muncul berbarengan
+                heart.style.animationDelay = Math.random() * 2 + 's';
+
+                screen4.appendChild(heart);
+
+                // Hapus hati setelah animasi selesai agar tidak menumpuk
+                setTimeout(() => { heart.remove(); }, 6000);
+            }
+        }
+
+        function nextScreen(outId, inId) {
+            document.getElementById(outId).classList.remove('active');
+            document.getElementById(inId).classList.add('active');
+        }
+    </script>
+</body>
+</html>
